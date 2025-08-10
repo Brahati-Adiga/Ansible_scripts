@@ -1,0 +1,5 @@
+ansible.cfg
+inventory.ini
+test.yaml
+config_logs.txt
+server_logs/

@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  become: true
+  ignore_errors: true
+  tasks:
+
+    - name: Check if folder exists
+      shell: |
+        if [ -d "/home/brahati/ansible/server_logs" ]; then
+          echo "Folder exists"
+        else
+          echo "Creating folder named server_logs"
+          mkdir -p "/home/brahati/ansible/server_logs"
+        fi
+#       cd "/home/brahati/ansible/server_logs"
+      register: folder_check
+
+
+- ansible.builtin.import_playbook: ./server-config.yaml
+# - ansible.builtin.import_playbook: ./test.yaml

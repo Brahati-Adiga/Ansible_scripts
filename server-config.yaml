@@ -1,0 +1,95 @@
+---
+- hosts: all
+  become: true
+  ignore_errors: true
+  gather_facts: false
+  tasks:
+
+    - name: Collect server uptime
+      command: uptime
+      register: uptime_result
+
+
+    - name: Collect server os and kernel version
+      ansible.builtin.shell: uname -a;cat /etc/os-release
+      register: version_result
+
+
+    - name: Get network interface information
+      command: ifconfig
+      register: ifconfig_output
+      changed_when: false
+
+ 
+    - name: Get Network statistics
+      shell: "netstat -nr"
+      register: network_result
+      changed_when: false
+
+
+    - name: Get Disk space
+      shell: "df -hT"
+      register: disk_space
+      changed_when: false
+
+
+    - name: Get CPU and hardware information
+      shell: "lscpu"
+      register: hardware_info
+      changed_when: false
+
+
+    - name: Get free and used memory in the system
+      shell: "free -h"
+      register: memory_result
+
+
+    - name: Get all block devices
+      shell: "lsblk"
+      register: block_devices
+
+  
+    - name: Get all running processes
+      shell: "ps aux"
+      register: processes
+
+
+    - name: Combine all collected data
+      set_fact:
+        server_info: |
+          Uptime: 
+          {{ uptime_result.stdout }}
+
+          OS_and_Kernel: 
+          {{ version_result.stdout }}
+
+          Network_Interface: 
+          {{ ifconfig_output.stdout }}
+
+          Network_Statistics: 
+          {{ network_result.stdout }}
+
+          Disk_Space: 
+          {{ disk_space.stdout }}
+
+          CPU_and_Hardware: 
+          {{ hardware_info.stdout }}
+
+          Memory: 
+          {{ memory_result.stdout }}
+
+          Block_Devices: 
+          {{ block_devices.stdout }}
+          
+          Running_Processes: 
+          {{ processes.stdout }}
+
+    - name: Current date and time
+      shell: "date '+%Y-%m-%d_%H:%M:%S'"
+      register: current_date
+
+    - name: Write collected data to control node
+      copy:
+        content: "{{ server_info }}"
+        dest: "/home/brahati/ansible/server_logs/{{ inventory_hostname }}_{{ current_date.stdout }}"
+      delegate_to: localhost
